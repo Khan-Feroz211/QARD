@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.env
+*.env
+.venv/
+venv/
+env/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Node / React Native
+node_modules/
+.expo/
+.expo-shared/
+*.jsbundle
+ios/Pods/
+ios/build/
+android/build/
+android/.gradle/
+android/app/build/
+dist/
+.DS_Store
+
+# Admin (Vite build)
+admin/dist/
+admin/node_modules/
+
+# Mobile
+mobile/node_modules/
+
+# Docker
+*.env.local
+.env.prod
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic compiled
+backend/alembic/__pycache__/
+
+# Firebase service account key
+serviceAccountKey.json
+*.json.key
+
+# MinIO / S3 local
+minio_data/

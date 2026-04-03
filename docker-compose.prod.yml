@@ -1,0 +1,88 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: qard
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - qard_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - qard_redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+
+  minio:
+    image: minio/minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    volumes:
+      - qard_minio_data:/data
+
+  backend:
+    image: qard/backend:${TAG:-latest}
+    restart: always
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+
+  celery:
+    image: qard/backend:${TAG:-latest}
+    restart: always
+    command: celery -A app.tasks.celery_app worker --loglevel=warning --concurrency=4
+    env_file: .env
+    depends_on:
+      - backend
+
+  admin:
+    image: qard/admin:${TAG:-latest}
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: always
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - qard_prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+    volumes:
+      - qard_grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  qard_pg_data:
+  qard_redis_data:
+  qard_minio_data:
+  qard_prometheus_data:
+  qard_grafana_data:
